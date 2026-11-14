@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lunar! — Game Modding Community</title>
+<meta name="description" content="Lunar! is a community server for modding games like BONELAB, Minecraft, BeamNG.drive and more. Share mods, get help, and build together.">
+<link rel="icon" href="assets/logo.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400;0,600;0,800;1,800;1,900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #05060a;
+    --bg-2: #0b0d16;
+    --card: #10131f;
+    --card-hi: #161a2b;
+    --line: #232842;
+    --text: #e9ebf5;
+    --muted: #9aa0b8;
+    --moon: #d9dbe4;
+    --blue: #4a5cf0;
+    --blue-2: #7b88ff;
+    --glow: rgba(74, 92, 240, .35);
+    --radius: 18px;
+    --max: 1160px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: Inter, system-ui, sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+  a { color: inherit; text-decoration: none; }
+  img { max-width: 100%; display: block; }
+
+  #stars { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+  main, header, footer { position: relative; z-index: 1; }
+  .wrap { width: min(var(--max), 100% - 32px); margin-inline: auto; }
+
+  /* ---------- Nav ---------- */
+  header {
+    position: sticky; top: 0; z-index: 10;
+    backdrop-filter: blur(12px);
+    background: rgba(5, 6, 10, .7);
+    border-bottom: 1px solid rgba(255,255,255,.05);
+  }
+  .nav { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-family: "Exo 2"; font-weight: 900; font-style: italic; font-size: 1.45rem; letter-spacing: .5px; }
+  .brand img { width: 40px; height: 40px; border-radius: 50%; }
+  .nav-links { display: flex; gap: 28px; font-weight: 500; color: var(--muted); font-size: .95rem; }
+  .nav-links a:hover { color: var(--text); }
+  .menu-btn { display: none; background: none; border: 1px solid var(--line); color: var(--text); border-radius: 10px; padding: 8px 12px; font-size: 1rem; cursor: pointer; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 13px 24px; border-radius: 999px;
+    font-weight: 600; font-size: .98rem;
+    transition: transform .2s, box-shadow .2s, background .2s;
+    cursor: pointer; border: 0;
+  }
+  .btn-primary { background: linear-gradient(135deg, var(--blue), #3443c9); color: #fff; box-shadow: 0 8px 30px var(--glow); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(74,92,240,.55); }
+  .btn-ghost { border: 1px solid var(--line); color: var(--text); background: rgba(255,255,255,.02); }
+  .btn-ghost:hover { border-color: var(--blue-2); background: rgba(74,92,240,.08); }
+  .btn svg { width: 20px; height: 20px; }
+  .nav .btn { padding: 9px 18px; font-size: .9rem; }
+
+  /* ---------- Hero ---------- */
+  .hero { padding: 80px 0 100px; display: grid; grid-template-columns: 1.1fr .9fr; gap: 50px; align-items: center; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border: 1px solid var(--line); border-radius: 999px; font-size: .82rem; color: var(--blue-2); background: rgba(74,92,240,.07); letter-spacing: .4px; }
+  .eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: #5ee38f; box-shadow: 0 0 10px #5ee38f; }
+  .hero h1 {
+    font-family: "Exo 2"; font-weight: 900; font-style: italic;
+    font-size: clamp(2.6rem, 6vw, 4.6rem); line-height: 1.02; margin: 22px 0 20px;
+    letter-spacing: -.5px;
+  }
+  .hero h1 .moon {
+    background: linear-gradient(180deg, #ffffff 10%, #a9adbd 90%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero h1 .accent { color: var(--blue-2); }
+  .hero p.lead { color: var(--muted); font-size: 1.12rem; max-width: 540px; }
+  .hero-cta { display: flex; gap: 14px; margin-top: 34px; flex-wrap: wrap; }
+  .hero-stats { display: flex; gap: 36px; margin-top: 46px; flex-wrap: wrap; }
+  .hero-stats b { display: block; font-family: "Exo 2"; font-size: 1.7rem; font-weight: 800; }
+  .hero-stats span { color: var(--muted); font-size: .88rem; }
+
+  .logo-stage { position: relative; display: grid; place-items: center; }
+  .logo-stage::before {
+    content: ""; position: absolute; width: 80%; aspect-ratio: 1; border-radius: 50%;
+    background: radial-gradient(circle, rgba(74,92,240,.35), transparent 65%);
+    filter: blur(30px);
+  }
+  .logo-stage img { position: relative; width: min(440px, 100%); border-radius: 50%; animation: float 7s ease-in-out infinite; }
+  .orbit { position: absolute; inset: -4%; border-radius: 50%; border: 1px dashed rgba(123,136,255,.25); animation: spin 60s linear infinite; }
+  .orbit::after { content: ""; position: absolute; top: 12%; left: 6%; width: 10px; height: 10px; border-radius: 50%; background: var(--blue-2); box-shadow: 0 0 16px var(--blue-2); }
+  @keyframes float { 50% { transform: translateY(-14px); } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---------- Sections ---------- */
+  section { padding: 90px 0; }
+  .section-head { text-align: center; max-width: 640px; margin: 0 auto 54px; }
+  .kicker { color: var(--blue-2); font-weight: 600; letter-spacing: 2px; text-transform: uppercase; font-size: .8rem; }
+  h2 { font-family: "Exo 2"; font-weight: 800; font-style: italic; font-size: clamp(2rem, 4vw, 2.8rem); margin: 10px 0 14px; line-height: 1.1; }
+  .section-head p { color: var(--muted); }
+
+  /* Games */
+  .games { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .game {
+    position: relative; overflow: hidden;
+    background: linear-gradient(160deg, var(--card-hi), var(--card));
+    border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 28px; transition: transform .25s, border-color .25s;
+  }
+  .game:hover { transform: translateY(-5px); border-color: var(--g, var(--blue)); }
+  .game::before {
+    content: ""; position: absolute; right: -60px; top: -60px; width: 180px; height: 180px; border-radius: 50%;
+    background: radial-gradient(circle, var(--g, var(--blue)), transparent 70%); opacity: .22; transition: opacity .25s;
+  }
+  .game:hover::before { opacity: .4; }
+  .game-icon { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; background: rgba(255,255,255,.05); border: 1px solid var(--line); margin-bottom: 20px; color: var(--g); }
+  .game-icon svg { width: 26px; height: 26px; }
+  .game h3 { font-family: "Exo 2"; font-weight: 800; font-size: 1.35rem; margin-bottom: 8px; }
+  .game p { color: var(--muted); font-size: .95rem; }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .tag { font-size: .75rem; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+
+  /* Features */
+  .features { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .feature { padding: 26px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(16,19,31,.6); }
+  .feature .num { font-family: "Exo 2"; font-style: italic; font-weight: 900; font-size: 2.2rem; color: transparent; -webkit-text-stroke: 1px var(--blue-2); }
+  .feature h3 { font-size: 1.08rem; margin: 10px 0 6px; }
+  .feature p { color: var(--muted); font-size: .92rem; }
+
+  /* Channels mock */
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center; }
+  .split h2 { text-align: left; }
+  .split p { color: var(--muted); }
+  .checks { list-style: none; margin-top: 24px; display: grid; gap: 12px; }
+  .checks li { display: flex; gap: 12px; align-items: flex-start; }
+  .checks li::before { content: ""; flex: none; width: 20px; height: 20px; margin-top: 2px; border-radius: 50%; background: rgba(74,92,240,.18) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237b88ff' stroke-width='3'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E") center/12px no-repeat; }
+  .channels { background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; box-shadow: 0 30px 80px rgba(0,0,0,.5); }
+  .ch-group { color: var(--muted); font-size: .72rem; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; margin: 16px 0 6px; }
+  .ch-group:first-child { margin-top: 0; }
+  .ch { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 8px; color: #c4c8da; font-size: .95rem; }
+  .ch::before { content: "#"; color: #5d6380; font-weight: 600; }
+  .ch.active { background: rgba(74,92,240,.15); color: #fff; }
+  .ch .badge { margin-left: auto; font-size: .7rem; background: var(--blue); color: #fff; padding: 1px 8px; border-radius: 999px; }
+
+  /* Rules */
+  .rules { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; counter-reset: rule; }
+  .rule { counter-increment: rule; display: flex; gap: 18px; padding: 22px; border-radius: 14px; border: 1px solid var(--line); background: rgba(16,19,31,.5); }
+  .rule::before { content: counter(rule, decimal-leading-zero); font-family: "Exo 2"; font-weight: 800; color: var(--blue-2); font-size: 1.1rem; }
+  .rule h4 { margin-bottom: 4px; }
+  .rule p { color: var(--muted); font-size: .92rem; }
+
+  /* FAQ */
+  .faq { max-width: 780px; margin: 0 auto; display: grid; gap: 12px; }
+  details { border: 1px solid var(--line); border-radius: 14px; background: rgba(16,19,31,.5); padding: 18px 22px; }
+  details[open] { border-color: rgba(123,136,255,.5); }
+  summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "+"; color: var(--blue-2); font-size: 1.3rem; line-height: 1; transition: transform .2s; }
+  details[open] summary::after { transform: rotate(45deg); }
+  details p { color: var(--muted); margin-top: 12px; }
+
+  /* CTA */
+  .cta {
+    position: relative; overflow: hidden; text-align: center;
+    border-radius: 28px; padding: 70px 30px;
+    border: 1px solid rgba(123,136,255,.3);
+    background: radial-gradient(ellipse at top, rgba(74,92,240,.3), transparent 60%), var(--bg-2);
+  }
+  .cta img { width: 110px; margin: 0 auto 22px; border-radius: 50%; }
+  .cta p { color: var(--muted); max-width: 520px; margin: 0 auto 30px; }
+
+  footer { border-top: 1px solid rgba(255,255,255,.06); padding: 34px 0; color: var(--muted); font-size: .88rem; }
+  footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s, transform .7s; }
+  .reveal.in { opacity: 1; transform: none; }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 960px) {
+    .hero { grid-template-columns: 1fr; text-align: center; padding-top: 50px; }
+    .hero p.lead { margin-inline: auto; }
+    .hero-cta, .hero-stats { justify-content: center; }
+    .logo-stage { order: -1; }
+    .logo-stage img { width: min(300px, 80%); }
+    .games { grid-template-columns: repeat(2, 1fr); }
+    .features { grid-template-columns: repeat(2, 1fr); }
+    .split { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 720px) {
+    .nav-links { display: none; position: absolute; top: 68px; left: 0; right: 0; flex-direction: column; gap: 0; background: rgba(5,6,10,.97); border-bottom: 1px solid var(--line); }
+    .nav-links.open { display: flex; }
+    .nav-links a { padding: 14px 16px; }
+    .menu-btn { display: block; }
+    .nav .btn { display: none; }
+    .games, .features, .rules { grid-template-columns: 1fr; }
+    section { padding: 64px 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .reveal { opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+
+<header>
+  <nav class="nav wrap">
+    <a href="#top" class="brand"><img src="assets/logo.webp" alt="">Lunar!</a>
+    <div class="nav-links" id="navLinks">
+      <a href="#games">Games</a>
+      <a href="#features">What we do</a>
+      <a href="#rules">Rules</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <a href="https://discord.gg/Ct6eFZHrc" class="btn btn-primary" target="_blank" rel="noopener">Join the server</a>
+    <button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button>
+  </nav>
+</header>
+
+<main id="top">
+  <!-- HERO -->
+  <div class="wrap hero">
+    <div>
+      <span class="eyebrow"><span class="dot"></span> Community modding server</span>
+      <h1><span class="moon">Mod beyond</span><br>the <span class="accent">orbit.</span></h1>
+      <p class="lead">Lunar! is a home for modders and players of BONELAB, Minecraft, BeamNG.drive and more. Share your creations, find mods that actually work, and get help from people who've been there.</p>
+      <div class="hero-cta">
+        <a href="https://discord.gg/Ct6eFZHrc" class="btn btn-primary" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.3 4.4A19.8 19.8 0 0 0 15.4 3l-.6 1.3a18.3 18.3 0 0 0-5.6 0L8.6 3a19.7 19.7 0 0 0-4.9 1.5C.6 9.1-.3 13.6.1 18.1a19.9 19.9 0 0 0 6 3l1.3-2.1a12.9 12.9 0 0 1-2-1l.5-.4a14.2 14.2 0 0 0 12.2 0l.5.4c-.6.4-1.3.7-2 1l1.3 2.1a19.8 19.8 0 0 0 6-3c.5-5.2-.9-9.7-3.6-13.7ZM8 15.4c-1.2 0-2.2-1.1-2.2-2.4S6.8 10.6 8 10.6s2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Zm8 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Z"/></svg>
+          Join on Discord
+        </a>
+        <a href="#games" class="btn btn-ghost">Explore games →</a>
+      </div>
+      <div class="hero-stats">
+        <div><b>5+</b><span>Games modded</span></div>
+        <div><b>24/7</b><span>Community help</span></div>
+        <div><b>100%</b><span>Free to join</span></div>
+      </div>
+    </div>
+    <div class="logo-stage">
+      <div class="orbit"></div>
+      <img src="assets/logo.webp" alt="Lunar! logo">
+    </div>
+  </div>
+
+  <!-- GAMES -->
+  <section id="games">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="kicker">Our games</span>
+        <h2>What we mod</h2>
+        <p>Every game gets its own channels for mod releases, troubleshooting, and showing off what you've built.</p>
+      </div>
+      <div class="games">
+        <article class="game reveal" style="--g:#ff7a3d">
+          <div class="game-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3"/></svg></div>
+          <h3>BONELAB</h3>
+          <p>Avatars, maps, weapons and code mods for physics-driven VR. Help with mod loaders, Quest vs. PC setup and SDK workflows.</p>
+          <div class="tags"><span class="tag">Avatars</span><span class="tag">Spawnables</span><span class="tag">Maps</span><span class="tag">VR</span></div>
+        </article>
+        <article class="game reveal" style="--g:#5ee38f">
+          <div class="game-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 2 3 7v10l9 5 9-5V7l-9-5Z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg></div>
+          <h3>Minecraft</h3>
+          <p>Fabric, Forge and NeoForge mods, modpacks, shaders, resource packs and datapacks. Crash logs welcome — we'll read them.</p>
+          <div class="tags"><span class="tag">Modpacks</span><span class="tag">Shaders</span><span class="tag">Fabric</span><span class="tag">Forge</span></div>
+        </article>
+        <article class="game reveal" style="--g:#ffd34d">
+          <div class="game-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M3 13l2-5a2 2 0 0 1 2-1h10a2 2 0 0 1 2 1l2 5v4H3v-4Z"/><circle cx="7.5" cy="17" r="2"/><circle cx="16.5" cy="17" r="2"/></svg></div>
+          <h3>BeamNG.drive</h3>
+          <p>Vehicles, maps, configs and Lua scenarios. Learn JBeam, tune your builds, and share crash tests that look way too real.</p>
+          <div class="tags"><span class="tag">Vehicles</span><span class="tag">Maps</span><span class="tag">JBeam</span><span class="tag">Lua</span></div>
+        </article>
+        <article class="game reveal" style="--g:#c07bff">
+          <div class="game-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2"/></svg></div>
+          <h3>Blade &amp; Sorcery</h3>
+          <p>Weapons, spells and gameplay mods for more VR combat sandbox chaos.</p>
+          <div class="tags"><span class="tag">Weapons</span><span class="tag">Spells</span><span class="tag">VR</span></div>
+        </article>
+        <article class="game reveal" style="--g:#4fc3ff">
+          <div class="game-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></div>
+          <h3>Sandbox &amp; open world</h3>
+          <p>Garry's Mod, GTA V, Skyrim, Teardown and other moddable favourites the community is into.</p>
+          <div class="tags"><span class="tag">Addons</span><span class="tag">Scripts</span><span class="tag">Load orders</span></div>
+        </article>
+        <article class="game reveal" style="--g:#4a5cf0">
+          <div class="game-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>
+          <h3>...and more</h3>
+          <p>Modding something we haven't listed? Bring it. If enough people are into it, it gets its own channel.</p>
+          <div class="tags"><span class="tag">Suggest a game</span></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="kicker">What we do</span>
+        <h2>Built for modders</h2>
+        <p>Whether you're installing your first mod or publishing your fiftieth, there's a place for you here.</p>
+      </div>
+      <div class="features">
+        <div class="feature reveal"><div class="num">01</div><h3>Mod showcases</h3><p>Post your releases and works-in-progress, and get real feedback from people who know the game.</p></div>
+        <div class="feature reveal"><div class="num">02</div><h3>Install help</h3><p>Stuck on a loader, a crash, or a broken load order? Drop your logs in a help channel.</p></div>
+        <div class="feature reveal"><div class="num">03</div><h3>Learn to make mods</h3><p>Guides, SDK tips and tools for building avatars, maps, vehicles and code mods.</p></div>
+        <div class="feature reveal"><div class="num">04</div><h3>Events &amp; game nights</h3><p>Modded multiplayer sessions, build contests and community showcases.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INSIDE -->
+  <section>
+    <div class="wrap split">
+      <div class="reveal">
+        <span class="kicker">Inside the server</span>
+        <h2>Organized, not overwhelming</h2>
+        <p>Channels are split up by game, so you only see what you care about. Pick your roles when you join and the rest stays out of your way.</p>
+        <ul class="checks">
+          <li>Per-game channels for releases, help and chat</li>
+          <li>Self-assign roles for the games you play</li>
+          <li>Friendly mods and a no-gatekeeping attitude</li>
+          <li>Safe-mod reminders: only trusted download sources</li>
+        </ul>
+      </div>
+      <div class="channels reveal" aria-hidden="true">
+        <div class="ch-group">🌙 Lunar!</div>
+        <div class="ch">announcements</div>
+        <div class="ch">general</div>
+        <div class="ch">pick-your-games</div>
+        <div class="ch-group">BONELAB</div>
+        <div class="ch active">bonelab-mods <span class="badge">NEW</span></div>
+        <div class="ch">bonelab-help</div>
+        <div class="ch-group">Minecraft</div>
+        <div class="ch">modpacks</div>
+        <div class="ch">crash-logs</div>
+        <div class="ch-group">BeamNG.drive</div>
+        <div class="ch">beamng-mods</div>
+        <div class="ch">crash-clips</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RULES -->
+  <section id="rules">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="kicker">Rules</span>
+        <h2>Keep it stellar</h2>
+        <p>A few simple rules so everyone has a good time.</p>
+      </div>
+      <div class="rules">
+        <div class="rule reveal"><div><h4>Be respectful</h4><p>No harassment, hate speech or drama. Everyone started as a beginner.</p></div></div>
+        <div class="rule reveal"><div><h4>No piracy</h4><p>We mod games we own. No cracked games or paid mods shared without permission.</p></div></div>
+        <div class="rule reveal"><div><h4>Credit creators</h4><p>Always credit the original author when sharing or editing someone else's mod.</p></div></div>
+        <div class="rule reveal"><div><h4>Safe downloads only</h4><p>No malware, sketchy links or re-uploads. Link to the official source.</p></div></div>
+        <div class="rule reveal"><div><h4>Use the right channel</h4><p>Help questions go in help channels, mods go in mod channels.</p></div></div>
+        <div class="rule reveal"><div><h4>Keep it SFW</h4><p>No NSFW content anywhere, including mod screenshots and avatars.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="kicker">FAQ</span>
+        <h2>Questions?</h2>
+      </div>
+      <div class="faq reveal">
+        <details><summary>Do I need to know how to mod to join?</summary><p>Nope. Lots of members just want to find good mods and play. We'll help you install them.</p></details>
+        <details><summary>Is the server free?</summary><p>Yes, joining Lunar! is completely free.</p></details>
+        <details><summary>Can I post my own mods?</summary><p>Absolutely. Share them in the game's mod channel with a description, screenshots and an official download link.</p></details>
+        <details><summary>My game isn't listed. Can I still join?</summary><p>Of course. Post in the suggestions channel. If there's interest, we'll add a section for it.</p></details>
+        <details><summary>Do you help with Quest / standalone VR modding?</summary><p>Yes. BONELAB and other VR games have both PC and Quest modding covered in their help channels.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section id="join">
+    <div class="wrap">
+      <div class="cta reveal">
+        <img src="assets/logo.webp" alt="">
+        <h2>Ready to launch?</h2>
+        <p>Join Lunar! and start modding with a community that's as obsessed with this stuff as you are.</p>
+        <a href="https://discord.gg/Ct6eFZHrc" class="btn btn-primary" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.3 4.4A19.8 19.8 0 0 0 15.4 3l-.6 1.3a18.3 18.3 0 0 0-5.6 0L8.6 3a19.7 19.7 0 0 0-4.9 1.5C.6 9.1-.3 13.6.1 18.1a19.9 19.9 0 0 0 6 3l1.3-2.1a12.9 12.9 0 0 1-2-1l.5-.4a14.2 14.2 0 0 0 12.2 0l.5.4c-.6.4-1.3.7-2 1l1.3 2.1a19.8 19.8 0 0 0 6-3c.5-5.2-.9-9.7-3.6-13.7ZM8 15.4c-1.2 0-2.2-1.1-2.2-2.4S6.8 10.6 8 10.6s2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Zm8 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Z"/></svg>
+          Join Lunar! on Discord
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© <span id="year"></span> Lunar! Modding Community</span>
+    <span>Not affiliated with any game developer or publisher.</span>
+  </div>
+</footer>
+
+<script>
+  // Year
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // Mobile menu
+  const menuBtn = document.getElementById('menuBtn');
+  const navLinks = document.getElementById('navLinks');
+  menuBtn.addEventListener('click', () => navLinks.classList.toggle('open'));
+  navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', () => navLinks.classList.remove('open')));
+
+  // Scroll reveal
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // Starfield
+  const c = document.getElementById('stars');
+  const ctx = c.getContext('2d');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let stars = [], w, h, dpr;
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    w = c.width = innerWidth * dpr; h = c.height = innerHeight * dpr;
+    c.style.width = innerWidth + 'px'; c.style.height = innerHeight + 'px';
+    const n = Math.floor((innerWidth * innerHeight) / 5000);
+    stars = Array.from({ length: n }, () => ({
+      x: Math.random() * w, y: Math.random() * h,
+      r: (Math.random() * 1.2 + .2) * dpr,
+      a: Math.random(), s: Math.random() * .015 + .003,
+      blue: Math.random() < .18
+    }));
+  }
+  function draw() {
+    ctx.clearRect(0, 0, w, h);
+    for (const s of stars) {
+      s.a += s.s; const alpha = .35 + Math.abs(Math.sin(s.a)) * .65;
+      ctx.fillStyle = s.blue ? `rgba(123,136,255,${alpha})` : `rgba(255,255,255,${alpha})`;
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
+    }
+    if (!reduce) requestAnimationFrame(draw);
+  }
+  addEventListener('resize', () => { resize(); if (reduce) draw(); });
+  resize(); draw();
+</script>
+</body>
+</html>
